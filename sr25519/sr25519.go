@@ -40,8 +40,8 @@ func (kr keyRing) Verify(msg []byte, signature []byte) bool {
 	if err := sig.Decode(sigs); err != nil {
 		return false
 	}
-	ok, err := kr.pub.Verify(sig, signingContext(msg))
-	if err != nil || !ok {
+	ok := kr.pub.Verify(sig, signingContext(msg))
+	if !ok {
 		return false
 	}
 
@@ -155,23 +155,7 @@ func (s Scheme) FromSeed(seed []byte) (subkey.KeyPair, error) {
 }
 
 func (s Scheme) FromPhrase(phrase, pwd string) (subkey.KeyPair, error) {
-	ms, err := sr25519.MiniSecretKeyFromMnemonic(phrase, pwd)
-	if err != nil {
-		return nil, err
-	}
-
-	secret := ms.ExpandEd25519()
-	pub, err := secret.Public()
-	if err != nil {
-		return nil, err
-	}
-
-	seed := ms.Encode()
-	return keyRing{
-		seed:   seed[:],
-		secret: secret,
-		pub:    pub,
-	}, nil
+	return nil, errors.New("not supported")
 }
 
 func (s Scheme) Derive(pair subkey.KeyPair, djs []subkey.DeriveJunction) (subkey.KeyPair, error) {
@@ -215,10 +199,7 @@ func (s Scheme) FromPublicKey(bytes []byte) (subkey.PublicKey, error) {
 	}
 	arr := [32]byte{}
 	copy(arr[:], bytes[:32])
-	key, err := sr25519.NewPublicKey(arr)
-	if err != nil {
-		return nil, err
-	}
+	key := sr25519.NewPublicKey(arr)
 
 	return &keyRing{pub: key}, nil
 }
